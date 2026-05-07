@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sauna Fundamentplaner</title>
+  <style>
+    :root {
+      --app-bg: #f3f4f6;
+      --panel-bg: #ffffff;
+      --panel-border: #d1d5db;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #0f766e;
+      --danger: #b91c1c;
+      --page-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      --a4-width: 210mm;
+      --a4-height: 297mm;
+      --wood-fill: #8a5a2b;
+      --wood-border: #6f451d;
+      --montage-gray: #4b5563;
+      --montage-stripe-width: 4px;
+      --montage-stripe-cycle: 8px;
+      --montage-angle: 45deg;
+      --power-red: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: var(--app-bg);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .content {
+      padding: 18px;
+      overflow: auto;
+    }
+
+    h1 {
+      margin: 0 0 14px 0;
+      font-size: 24px;
+    }
+
+    h2 {
+      margin: 0 0 12px 0;
+      font-size: 17px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field {
+      margin-bottom: 10px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 14px;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .checkbox-row label {
+      margin: 0;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #111827;
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    .status {
+      min-height: 22px;
+      font-size: 13px;
+      color: var(--danger);
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .preview-toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .page-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 40px;
+    }
+
+    .page {
+      position: relative;
+      width: var(--a4-width);
+      height: var(--a4-height);
+      background: #fff;
+      box-shadow: var(--page-shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 1fr 4fr;
+    }
+
+    .page-header {
+      position: relative;
+      border-bottom: 2px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px 36px;
+      min-height: 0;
+      background: linear-gradient(to bottom, #f8fafc, #eef2f7);
+    }
+
+    .page-header-title {
+      font-size: 26px;
+      font-weight: 700;
+      text-align: center;
+      color: #111827;
+      letter-spacing: 0.3px;
+      max-width: 70%;
+      line-height: 1.2;
+    }
+
+    .page-header-note {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 10px;
+      font-size: 12px;
+      color: #475569;
+      text-align: center;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+
+    .page-header-legend {
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      font-size: 12px;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      line-height: 1.35;
+      min-width: 170px;
+      text-align: left;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    }
+
+    .page-header-legend-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-align: left;
+      color: #334155;
+    }
+
+    .page-header-legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .page-header-legend-swatch {
+      width: 16px;
+      height: 12px;
+      border: 1px solid #64748b;
+      border-radius: 2px;
+      flex: 0 0 auto;
+      position: relative;
+    }
+
+    .page-header-legend-swatch.wood {
+      background: var(--wood-fill);
+      border-color: var(--wood-border);
+    }
+
+    .page-header-legend-swatch.montage {
+      background: repeating-linear-gradient(
+        var(--montage-angle),
+        #ffffff 0px,
+        #ffffff var(--montage-stripe-width),
+        var(--montage-gray) var(--montage-stripe-width),
+        var(--montage-gray) var(--montage-stripe-cycle)
+      );
+      border-color: var(--montage-gray);
+    }
+
+    .page-header-legend-swatch.power {
+      border: none;
+      background: transparent;
+    }
+
+    .page-header-legend-swatch.power::before,
+    .page-header-legend-swatch.power::after {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: -1px;
+      width: 3px;
+      height: 16px;
+      background: var(--power-red);
+      border-radius: 2px;
+      transform-origin: center;
+    }
+
+    .page-header-legend-swatch.power::before {
+      transform: rotate(45deg);
+    }
+
+    .page-header-legend-swatch.power::after {
+      transform: rotate(-45deg);
+    }
+
+    .page-body {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background: #fcfcfd;
+    }
+
+    .drawing-container {
+      position: absolute;
+      overflow: visible;
+      background: transparent;
+    }
+
+    .drawing-container.debug {
+      outline: 1px dashed #9ca3af;
+    }
+
+    .meta-table {
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .meta-table strong {
+      display: inline-block;
+      min-width: 140px;
+    }
+
+    .note {
+      margin-top: 8px;
+      padding: 10px;
+      background: #ecfeff;
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .sidebar,
+      .preview-toolbar,
+      .screen-only-title {
+        display: none !important;
+      }
+
+      .app {
+        display: block;
+      }
+
+      .content {
+        padding: 0;
+        margin: 0;
+      }
+
+      .page-wrap {
+        display: block;
+        padding: 0;
+        margin: 0;
+      }
+
+      .page {
+        width: 210mm;
+        height: 297mm;
+        box-shadow: none;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>Sauna Fundamentplaner</h1>
+
+      <div class="card">
+        <div class="muted">
+          Die App erzeugt eine technische Maßzeichnung für Saunafüße auf einer A4-Seite im Hochformat. Alle Maße werden in Millimetern geführt. Die Konfigurationen werden im Browser persistent gespeichert.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Konfigurationen</h2>
+        <div class="field">
+          <label for="configSelect">Gespeicherte Konfiguration</label>
+          <select id="configSelect"></select>
+        </div>
+        <div class="button-row">
+          <button id="newConfigBtn" type="button">Neu</button>
+          <button id="duplicateConfigBtn" class="secondary" type="button">Duplizieren</button>
+          <button id="deleteConfigBtn" class="danger" type="button">Löschen</button>
+        </div>
+        <div class="note">Änderungen an den Eingabefeldern werden automatisch gespeichert.</div>
+      </div>
+
+      <div class="card">
+        <h2>Sauna-Daten</h2>
+        <div class="field">
+          <label for="modelInput">Sauna Modell</label>
+          <input id="modelInput" type="text" />
+        </div>
+        <div class="field">
+          <label for="gapsInput">Innenabstände (mm)</label>
+          <input id="gapsInput" type="text" placeholder="z. B. 960,1000,960" />
+          <div class="muted small" style="margin-top: 4px;">Kommagetrennte Liste. Beispiel: 960,1000,960 ergibt 4 Füße.</div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="widthInput">Breite (mm)</label>
+            <input id="widthInput" type="number" min="1" step="1" />
+          </div>
+          <div class="field">
+            <label for="footThicknessInput">Fußmaterial Dicke (mm)</label>
+            <input id="footThicknessInput" type="number" min="1" step="1" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="montageInput">Montagebereich (mm)</label>
+          <input id="montageInput" type="number" min="1" step="1" />
+        </div>
+        <div id="validationMessage" class="status"></div>
+      </div>
+
+      <div class="card">
+        <h2>Platzierung auf A4</h2>
+        <div class="grid-2">
+          <div class="field">
+            <label for="horizontalAnchor">Horizontaler Bezug</label>
+            <select id="horizontalAnchor">
+              <option value="left">von links</option>
+              <option value="right">von rechts</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="verticalAnchor">Vertikaler Bezug</label>
+            <select id="verticalAnchor">
+              <option value="top">von oben</option>
+              <option value="bottom">von unten</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="horizontalOffset">Horizontaler Abstand (px)</label>
+            <input id="horizontalOffset" type="number" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label for="verticalOffset">Vertikaler Abstand (px)</label>
+            <input id="verticalOffset" type="number" min="0" step="1" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="zoomInput">Skalierung (%)</label>
+          <input id="zoomInput" type="number" min="20" max="200" step="1" />
+          <div class="muted small" style="margin-top: 4px;">100 % bedeutet automatische Einpassung. Höhere Werte können Überlauf erzeugen.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Hinweistext</h2>
+        <div class="field">
+          <label for="headerNoteInput">Globaler Hinweis für den Kopfbereich</label>
+          <textarea id="headerNoteInput" rows="3" placeholder="z. B. Alle Maße in mm. Angaben vor Fundamenterstellung vor Ort prüfen."></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Darstellung</h2>
+        <div class="checkbox-row">
+          <input id="showGridInput" type="checkbox" />
+          <label for="showGridInput">Raster anzeigen</label>
+        </div>
+        <div class="checkbox-row">
+          <input id="showDebugContainerInput" type="checkbox" />
+          <label for="showDebugContainerInput">unsichtbaren Container sichtbar machen</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Aktuelle Zeichnung</h2>
+        <div id="summary" class="meta-table"></div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="screen-only-title" style="margin-bottom: 10px; font-size: 20px; font-weight: 700;">A4-Vorschau</div>
+      <div class="preview-toolbar">
+        <button id="printBtn" type="button">Drucken / PDF</button>
+        <button id="resetLayoutBtn" class="secondary" type="button">Platzierung zurücksetzen</button>
+      </div>
+      <div class="page-wrap">
+        <div id="page" class="page">
+          <div class="page-header">
+            <div id="pageHeaderTitle" class="page-header-title"></div>
+            <div id="pageHeaderNote" class="page-header-note"></div>
+            <div class="page-header-legend">
+              <div class="page-header-legend-title">Legende</div>
+              <div class="page-header-legend-row">
+                <span class="page-header-legend-swatch wood"></span>
+                <span>Holzfuß</span>
+              </div>
+              <div class="page-header-legend-row">
+                <span class="page-header-legend-swatch montage"></span>
+                <span>Montagebereich</span>
+              </div>
+              <div class="page-header-legend-row">
+                <span class="page-header-legend-swatch power"></span>
+                <span>Stromanschluss</span>
+              </div>
+            </div>
+          </div>
+          <div id="pageBody" class="page-body">
+            <div id="drawingContainer" class="drawing-container"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'sauna-fundament-planer-state-v3';
+
+    const defaultState = {
+      selectedId: null,
+      configs: [
+        {
+          id: crypto.randomUUID(),
+          model: 'Palkkio Beispiel',
+          gaps: '960,1000,960',
+          widthMm: 2000,
+          footThicknessMm: 80,
+          montageMm: 700
+        },
+        {
+          id: crypto.randomUUID(),
+          model: 'Premium Beispiel',
+          gaps: '900,900,900,900',
+          widthMm: 2200,
+          footThicknessMm: 80,
+          montageMm: 750
+        }
+      ],
+      layout: {
+        headerNote: 'Alle Maße in mm. Angaben vor Fundamenterstellung vor Ort prüfen.',
+        horizontalAnchor: 'left',
+        verticalAnchor: 'top',
+        horizontalOffset: 70,
+        verticalOffset: 80,
+        zoomPercent: 100,
+        showGrid: false,
+        showDebugContainer: false
+      }
+    };
+
+    if (!defaultState.selectedId) {
+      defaultState.selectedId = defaultState.configs[0].id;
+    }
+
+    let state = loadState();
+
+    const el = {
+      configSelect: document.getElementById('configSelect'),
+      modelInput: document.getElementById('modelInput'),
+      gapsInput: document.getElementById('gapsInput'),
+      widthInput: document.getElementById('widthInput'),
+      footThicknessInput: document.getElementById('footThicknessInput'),
+      montageInput: document.getElementById('montageInput'),
+      validationMessage: document.getElementById('validationMessage'),
+      summary: document.getElementById('summary'),
+      horizontalAnchor: document.getElementById('horizontalAnchor'),
+      verticalAnchor: document.getElementById('verticalAnchor'),
+      horizontalOffset: document.getElementById('horizontalOffset'),
+      verticalOffset: document.getElementById('verticalOffset'),
+      zoomInput: document.getElementById('zoomInput'),
+      showGridInput: document.getElementById('showGridInput'),
+      showDebugContainerInput: document.getElementById('showDebugContainerInput'),
+      page: document.getElementById('page'),
+      pageBody: document.getElementById('pageBody'),
+      pageHeaderTitle: document.getElementById('pageHeaderTitle'),
+      pageHeaderNote: document.getElementById('pageHeaderNote'),
+      headerNoteInput: document.getElementById('headerNoteInput'),
+      drawingContainer: document.getElementById('drawingContainer'),
+      newConfigBtn: document.getElementById('newConfigBtn'),
+      duplicateConfigBtn: document.getElementById('duplicateConfigBtn'),
+      deleteConfigBtn: document.getElementById('deleteConfigBtn'),
+      printBtn: document.getElementById('printBtn'),
+      resetLayoutBtn: document.getElementById('resetLayoutBtn')
+    };
+
+    function normalizeConfig(config) {
+      const normalized = { ...config };
+
+      if (normalized.widthMm == null && normalized.widthCm != null) {
+        normalized.widthMm = Number(normalized.widthCm) * 10;
+      }
+      if (normalized.footThicknessMm == null && normalized.footThicknessCm != null) {
+        normalized.footThicknessMm = Number(normalized.footThicknessCm) * 10;
+      }
+      if (normalized.montageMm == null && normalized.montageCm != null) {
+        normalized.montageMm = Number(normalized.montageCm) * 10;
+      }
+
+      delete normalized.widthCm;
+      delete normalized.footThicknessCm;
+      delete normalized.montageCm;
+
+      if (typeof normalized.gaps === 'string' && normalized.gaps.includes(',')) {
+        const values = normalized.gaps
+          .split(',')
+          .map(v => v.trim())
+          .filter(v => v !== '');
+
+        const looksLikeLegacyCm = values.every(v => /^\d+(\.\d+)?$/.test(v) && Number(v) < 300);
+        if (looksLikeLegacyCm) {
+          normalized.gaps = values.map(v => String(Math.round(Number(v) * 10))).join(',');
+        }
+      }
+
+      return normalized;
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.configs) || parsed.configs.length === 0) {
+          return structuredClone(defaultState);
+        }
+
+        parsed.configs = parsed.configs.map(normalizeConfig);
+
+        if (!parsed.selectedId || !parsed.configs.some(c => c.id === parsed.selectedId)) {
+          parsed.selectedId = parsed.configs[0].id;
+        }
+
+        parsed.layout = {
+          ...structuredClone(defaultState.layout),
+          ...(parsed.layout || {})
+        };
+
+        if (parsed.layout.headerNote && parsed.layout.headerNote.includes('cm')) {
+          parsed.layout.headerNote = parsed.layout.headerNote.replaceAll('cm', 'mm');
+        }
+
+        return parsed;
+      } catch (error) {
+        console.error('Fehler beim Laden des Status:', error);
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getCurrentConfig() {
+      return state.configs.find(c => c.id === state.selectedId) || null;
+    }
+
+    function parseGapValues(gapText) {
+      return String(gapText || '')
+        .split(',')
+        .map(v => v.trim())
+        .filter(v => v !== '')
+        .map(v => Number(v))
+        .filter(v => Number.isFinite(v) && v >= 0);
+    }
+
+    function validateConfig(config) {
+      const gaps = parseGapValues(config.gaps);
+      if (!config.model || !String(config.model).trim()) return 'Bitte ein Sauna-Modell angeben.';
+      if (gaps.length < 1) return 'Bitte mindestens einen Innenabstand eingeben.';
+      if (!Number.isFinite(Number(config.widthMm)) || Number(config.widthMm) <= 0) return 'Die Breite muss größer als 0 sein.';
+      if (!Number.isFinite(Number(config.footThicknessMm)) || Number(config.footThicknessMm) <= 0) return 'Die Fußmaterial-Dicke muss größer als 0 sein.';
+      if (!Number.isFinite(Number(config.montageMm)) || Number(config.montageMm) <= 0) return 'Der Montagebereich muss größer als 0 sein.';
+      return '';
+    }
+
+    function renderConfigSelect() {
+      const previousValue = state.selectedId;
+      el.configSelect.innerHTML = '';
+      state.configs.forEach(config => {
+        const option = document.createElement('option');
+        option.value = config.id;
+        option.textContent = config.model || 'Unbenannte Konfiguration';
+        el.configSelect.appendChild(option);
+      });
+      el.configSelect.value = previousValue;
+    }
+
+    function updateFormFromState() {
+      const config = getCurrentConfig();
+      if (!config) return;
+
+      renderConfigSelect();
+      el.modelInput.value = config.model ?? '';
+      el.gapsInput.value = config.gaps ?? '';
+      el.widthInput.value = config.widthMm ?? '';
+      el.footThicknessInput.value = config.footThicknessMm ?? '';
+      el.montageInput.value = config.montageMm ?? '';
+      el.headerNoteInput.value = state.layout.headerNote ?? '';
+      el.horizontalAnchor.value = state.layout.horizontalAnchor;
+      el.verticalAnchor.value = state.layout.verticalAnchor;
+      el.horizontalOffset.value = state.layout.horizontalOffset;
+      el.verticalOffset.value = state.layout.verticalOffset;
+      el.zoomInput.value = state.layout.zoomPercent;
+      el.showGridInput.checked = !!state.layout.showGrid;
+      el.showDebugContainerInput.checked = !!state.layout.showDebugContainer;
+    }
+
+    function updateCurrentConfigFromInputs() {
+      const config = getCurrentConfig();
+      if (!config) return;
+
+      config.model = el.modelInput.value.trim();
+      config.gaps = el.gapsInput.value.trim();
+      config.widthMm = Number(el.widthInput.value);
+      config.footThicknessMm = Number(el.footThicknessInput.value);
+      config.montageMm = Number(el.montageInput.value);
+
+      saveState();
+      renderConfigSelect();
+      renderAll();
+    }
+
+    function updateLayoutFromInputs() {
+      state.layout.headerNote = el.headerNoteInput.value.trim();
+      state.layout.horizontalAnchor = el.horizontalAnchor.value;
+      state.layout.verticalAnchor = el.verticalAnchor.value;
+      state.layout.horizontalOffset = Number(el.horizontalOffset.value);
+      state.layout.verticalOffset = Number(el.verticalOffset.value);
+      state.layout.zoomPercent = Number(el.zoomInput.value);
+      state.layout.showGrid = el.showGridInput.checked;
+      state.layout.showDebugContainer = el.showDebugContainerInput.checked;
+
+      saveState();
+      renderAll();
+    }
+
+    function createSvgEl(tag, attrs = {}) {
+      const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [key, value] of Object.entries(attrs)) {
+        node.setAttribute(key, String(value));
+      }
+      return node;
+    }
+
+    function addMarker(defs, id, fill) {
+      const marker = createSvgEl('marker', {
+        id,
+        markerWidth: 8,
+        markerHeight: 8,
+        refX: 4,
+        refY: 4,
+        orient: 'auto-start-reverse',
+        markerUnits: 'strokeWidth'
+      });
+      const path = createSvgEl('path', { d: 'M 0 0 L 8 4 L 0 8 z', fill });
+      marker.appendChild(path);
+      defs.appendChild(marker);
+    }
+
+    function createMontagePattern(defs) {
+      const pattern = createSvgEl('pattern', {
+        id: 'montagePattern',
+        patternUnits: 'userSpaceOnUse',
+        width: 8,
+        height: 8,
+        patternTransform: 'rotate(45)'
+      });
+
+      pattern.appendChild(createSvgEl('rect', {
+        x: 0,
+        y: 0,
+        width: 8,
+        height: 8,
+        fill: '#ffffff'
+      }));
+
+      pattern.appendChild(createSvgEl('rect', {
+        x: 4,
+        y: 0,
+        width: 4,
+        height: 8,
+        fill: '#4b5563'
+      }));
+
+      defs.appendChild(pattern);
+      return pattern;
+    }
+
+    function drawLine(parent, x1, y1, x2, y2, stroke = '#111827', width = 1.5, extra = {}) {
+      const line = createSvgEl('line', { x1, y1, x2, y2, stroke, 'stroke-width': width, ...extra });
+      parent.appendChild(line);
+      return line;
+    }
+
+    function drawText(parent, x, y, textContent, attrs = {}) {
+      const text = createSvgEl('text', {
+        x, y, fill: '#111827', 'font-size': 13, 'font-family': 'Arial, Helvetica, sans-serif', ...attrs
+      });
+      text.textContent = textContent;
+      parent.appendChild(text);
+      return text;
+    }
+
+    function drawRect(parent, x, y, width, height, attrs = {}) {
+      const rect = createSvgEl('rect', { x, y, width, height, ...attrs });
+      parent.appendChild(rect);
+      return rect;
+    }
+
+    function drawGrid(parent, width, height, majorStep = 50, minorStep = 25) {
+      for (let x = 0; x <= width; x += minorStep) {
+        drawLine(parent, x, 0, x, height, '#e5e7eb', x % majorStep === 0 ? 1 : 0.7);
+      }
+      for (let y = 0; y <= height; y += minorStep) {
+        drawLine(parent, 0, y, width, y, '#e5e7eb', y % majorStep === 0 ? 1 : 0.7);
+      }
+    }
+
+    function drawVerticalDimension(parent, options) {
+      const {
+        x,
+        y1,
+        y2,
+        label,
+        extensionFromX = null,
+        extensionToX = x,
+        textOffsetX = 10,
+        color = '#0f766e',
+        arrowInset = 7
+      } = options;
+
+      const topY = Math.min(y1, y2);
+      const bottomY = Math.max(y1, y2);
+
+      if (extensionFromX !== null) {
+        drawLine(parent, extensionFromX, topY, extensionToX, topY, color, 1.2);
+        drawLine(parent, extensionFromX, bottomY, extensionToX, bottomY, color, 1.2);
+      }
+
+      const usableTop = topY + arrowInset;
+      const usableBottom = bottomY - arrowInset;
+
+      if (usableBottom > usableTop) {
+        drawLine(parent, x, usableTop, x, usableBottom, color, 1.7, {
+          'marker-start': 'url(#arrowDim)',
+          'marker-end': 'url(#arrowDim)'
+        });
+      } else {
+        drawLine(parent, x, topY, x, bottomY, color, 1.7, {
+          'marker-start': 'url(#arrowDim)',
+          'marker-end': 'url(#arrowDim)'
+        });
+      }
+
+      drawText(parent, x + textOffsetX, (topY + bottomY) / 2 + 4, label, {
+        fill: color,
+        'font-size': 13,
+        'font-weight': 700
+      });
+    }
+
+    function drawHorizontalDimension(parent, options) {
+      const {
+        y,
+        x1,
+        x2,
+        label,
+        extensionFromY = null,
+        extensionToY = y,
+        textOffsetY = 18,
+        color = '#0f766e',
+        arrowInset = 7
+      } = options;
+
+      const leftX = Math.min(x1, x2);
+      const rightX = Math.max(x1, x2);
+
+      if (extensionFromY !== null) {
+        drawLine(parent, leftX, extensionFromY, leftX, extensionToY, color, 1.2);
+        drawLine(parent, rightX, extensionFromY, rightX, extensionToY, color, 1.2);
+      }
+
+      const usableLeft = leftX + arrowInset;
+      const usableRight = rightX - arrowInset;
+
+      if (usableRight > usableLeft) {
+        drawLine(parent, usableLeft, y, usableRight, y, color, 1.7, {
+          'marker-start': 'url(#arrowDim)',
+          'marker-end': 'url(#arrowDim)'
+        });
+      } else {
+        drawLine(parent, leftX, y, rightX, y, color, 1.7, {
+          'marker-start': 'url(#arrowDim)',
+          'marker-end': 'url(#arrowDim)'
+        });
+      }
+
+      drawText(parent, (leftX + rightX) / 2, y + textOffsetY, label, {
+        fill: color,
+        'font-size': 13,
+        'font-weight': 700,
+        'text-anchor': 'middle'
+      });
+    }
+
+    function drawVerticalDimensionOutsideArrows(parent, options) {
+      const {
+        x,
+        yTop,
+        yBottom,
+        label,
+        extensionFromX,
+        extensionToX = x,
+        outwardSize = 12,
+        color = '#0f766e',
+        labelOffsetX = -8
+      } = options;
+
+      drawLine(parent, extensionFromX, yTop, extensionToX, yTop, color, 1.2);
+      drawLine(parent, extensionFromX, yBottom, extensionToX, yBottom, color, 1.2);
+
+      const upperOuterY = yTop - outwardSize;
+      const lowerOuterY = yBottom + outwardSize;
+
+      drawLine(parent, x, upperOuterY, x, yTop, color, 1.7, {
+        'marker-end': 'url(#arrowDim)'
+      });
+
+      drawLine(parent, x, lowerOuterY, x, yBottom, color, 1.7, {
+        'marker-end': 'url(#arrowDim)'
+      });
+
+      drawText(parent, x + labelOffsetX, (yTop + yBottom) / 2 + 4, label, {
+        fill: color,
+        'font-size': 12,
+        'font-weight': 700,
+        'text-anchor': 'end'
+      });
+    }
+
+    function drawBrokenVerticalDimension(parent, options) {
+      const {
+        x,
+        yTop,
+        yBottom,
+        label,
+        extensionFromX,
+        extensionToX = x,
+        color = '#0f766e',
+        arrowInset = 7
+      } = options;
+
+      drawLine(parent, extensionFromX, yTop, extensionToX, yTop, color, 1.2);
+      drawLine(parent, extensionFromX, yBottom, extensionToX, yBottom, color, 1.2);
+
+      const mid = (yTop + yBottom) / 2;
+      const gap = 16;
+      const upperLineEnd = Math.max(yTop + arrowInset, mid - gap);
+      const lowerLineStart = Math.min(yBottom - arrowInset, mid + gap);
+
+      drawLine(parent, x, yTop + arrowInset, x, upperLineEnd, color, 1.7, {
+        'marker-start': 'url(#arrowDim)'
+      });
+      drawLine(parent, x, lowerLineStart, x, yBottom - arrowInset, color, 1.7, {
+        'marker-end': 'url(#arrowDim)'
+      });
+
+      const zigzag = createSvgEl('path', {
+        d: `M ${x - 6} ${mid - 8} L ${x + 6} ${mid - 2} L ${x - 6} ${mid + 4} L ${x + 6} ${mid + 10}`,
+        fill: 'none',
+        stroke: color,
+        'stroke-width': 1.7
+      });
+      parent.appendChild(zigzag);
+
+      drawText(parent, x - 8, mid + 4, label, {
+        fill: color,
+        'font-size': 12,
+        'font-weight': 700,
+        'text-anchor': 'end'
+      });
+    }
+
+    function buildWavePath(xStart, y, width, amplitude, wavelength) {
+      let d = `M ${xStart} ${y}`;
+      let currentX = xStart;
+      let up = true;
+      while (currentX < xStart + width) {
+        const nextX = Math.min(currentX + wavelength, xStart + width);
+        const midX = currentX + (nextX - currentX) / 2;
+        const controlY = up ? y - amplitude : y + amplitude;
+        d += ` Q ${midX} ${controlY} ${nextX} ${y}`;
+        currentX = nextX;
+        up = !up;
+      }
+      return d;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderSummary(config) {
+      const gaps = parseGapValues(config.gaps);
+      const footCount = gaps.length + 1;
+      const totalY = gaps.reduce((sum, v) => sum + v, 0) + footCount * Number(config.footThicknessMm);
+      el.summary.innerHTML = `
+        <div><strong>Modell:</strong> ${escapeHtml(config.model)}</div>
+        <div><strong>Innenabstände:</strong> ${gaps.join(', ')} mm</div>
+        <div><strong>Anzahl Füße:</strong> ${footCount}</div>
+        <div><strong>Breite:</strong> ${config.widthMm} mm</div>
+        <div><strong>Fußdicke:</strong> ${config.footThicknessMm} mm</div>
+        <div><strong>Montagebereich:</strong> ${config.montageMm} mm</div>
+        <div><strong>Gesamtmaß Y:</strong> ${totalY} mm</div>
+      `;
+    }
+
+    function renderDrawing(config, validationError) {
+      el.drawingContainer.innerHTML = '';
+      if (validationError) return;
+
+      const gaps = parseGapValues(config.gaps);
+      const footCount = gaps.length + 1;
+      const widthMm = Number(config.widthMm);
+      const footThicknessMm = Number(config.footThicknessMm);
+      const montageMm = Number(config.montageMm);
+
+      const feet = [];
+      let currentBottom = 0;
+      for (let i = 0; i < footCount; i++) {
+        const yBottom = currentBottom;
+        const yTop = yBottom + footThicknessMm;
+        feet.push({ index: i, yBottom, yTop });
+        if (i < gaps.length) currentBottom = yTop + gaps[i];
+      }
+
+      const totalConstructionYmm = feet[feet.length - 1].yTop;
+      const pageBodyWidthPx = el.pageBody.clientWidth;
+      const pageBodyHeightPx = el.pageBody.clientHeight;
+      const leftDimArea = 150;
+      const rightDimArea = 140;
+      const bottomDimArea = 85;
+      const topPadding = 16;
+      const mountVisibleHeight = 58;
+      const bodyPaddingX = 28;
+      const bodyPaddingY = 24;
+      const availableWidthPx = Math.max(0, pageBodyWidthPx - bodyPaddingX * 2);
+      const availableHeightPx = Math.max(0, pageBodyHeightPx - bodyPaddingY * 2);
+      const maxScaleX = Math.max(0.03, (availableWidthPx - leftDimArea - rightDimArea) / widthMm);
+      const maxScaleY = Math.max(0.03, (availableHeightPx - topPadding - mountVisibleHeight - bottomDimArea) / totalConstructionYmm);
+
+      let scale = Math.min(maxScaleX, maxScaleY);
+      scale = scale * (Number(state.layout.zoomPercent) / 100);
+      scale = Math.max(0.02, scale);
+
+      const feetWidthPx = widthMm * scale;
+      const totalConstructionYPx = totalConstructionYmm * scale;
+      const svgWidth = Math.ceil(leftDimArea + feetWidthPx + rightDimArea);
+      const svgHeight = Math.ceil(topPadding + mountVisibleHeight + totalConstructionYPx + bottomDimArea);
+
+      const container = el.drawingContainer;
+      container.classList.toggle('debug', !!state.layout.showDebugContainer);
+      container.style.width = `${svgWidth}px`;
+      container.style.height = `${svgHeight}px`;
+      container.style.left = '';
+      container.style.right = '';
+      container.style.top = '';
+      container.style.bottom = '';
+
+      const centeredLeft = Math.max(bodyPaddingX, (pageBodyWidthPx - svgWidth) / 2);
+      const centeredTop = Math.max(bodyPaddingY, (pageBodyHeightPx - svgHeight) / 2);
+
+      container.style.left = `${centeredLeft}px`;
+      container.style.top = `${centeredTop}px`;
+
+      const svg = createSvgEl('svg', { width: svgWidth, height: svgHeight, viewBox: `0 0 ${svgWidth} ${svgHeight}` });
+      container.appendChild(svg);
+
+      const defs = createSvgEl('defs');
+      addMarker(defs, 'arrowDim', '#0f766e');
+      createMontagePattern(defs);
+      svg.appendChild(defs);
+
+      if (state.layout.showGrid) drawGrid(svg, svgWidth, svgHeight, 50, 25);
+
+      const objectX = leftDimArea;
+      const objectRightX = objectX + feetWidthPx;
+      const objectCenterX = objectX + feetWidthPx / 2;
+      const highestFootTopY = topPadding + mountVisibleHeight;
+      const lowestFootBottomY = highestFootTopY + totalConstructionYPx;
+
+      function footSvgTop(foot) {
+        return highestFootTopY + (totalConstructionYmm - foot.yTop) * scale;
+      }
+
+      function footSvgBottom(foot) {
+        return highestFootTopY + (totalConstructionYmm - foot.yBottom) * scale;
+      }
+
+      const feetGroup = createSvgEl('g');
+      svg.appendChild(feetGroup);
+      feet.forEach(foot => {
+        const y = footSvgTop(foot);
+        const height = footThicknessMm * scale;
+        drawRect(feetGroup, objectX, y, feetWidthPx, height, {
+          fill: '#8a5a2b',
+          stroke: '#111827',
+          'stroke-width': 2
+        });
+      });
+
+      const mountGroup = createSvgEl('g');
+      svg.appendChild(mountGroup);
+      const mountTopVisibleY = topPadding;
+      const mountBottomVisibleY = highestFootTopY;
+      const mountSegmentHeight = 18;
+      const montageLabel = `${Math.round(montageMm)} mm`;
+
+      drawRect(mountGroup, objectX, mountTopVisibleY, feetWidthPx, mountSegmentHeight, {
+        fill: 'url(#montagePattern)',
+        stroke: '#4b5563',
+        'stroke-width': 1.6
+      });
+
+      drawRect(mountGroup, objectX, mountBottomVisibleY - mountSegmentHeight, feetWidthPx, mountSegmentHeight, {
+        fill: 'url(#montagePattern)',
+        stroke: '#4b5563',
+        'stroke-width': 1.6
+      });
+
+      const breakY1 = mountTopVisibleY + mountSegmentHeight + 4;
+      const breakY2 = mountBottomVisibleY - mountSegmentHeight - 4;
+
+      mountGroup.appendChild(createSvgEl('path', {
+        d: buildWavePath(objectX, breakY1, feetWidthPx, 8, 10),
+        fill: 'none',
+        stroke: '#4b5563',
+        'stroke-width': 1.7
+      }));
+
+      mountGroup.appendChild(createSvgEl('path', {
+        d: buildWavePath(objectX, breakY2, feetWidthPx, 8, 10),
+        fill: 'none',
+        stroke: '#4b5563',
+        'stroke-width': 1.7
+      }));
+
+      const powerXGroup = createSvgEl('g');
+      svg.appendChild(powerXGroup);
+
+      const powerXSize = 10;
+      drawLine(
+        powerXGroup,
+        objectCenterX - powerXSize,
+        highestFootTopY - powerXSize,
+        objectCenterX + powerXSize,
+        highestFootTopY + powerXSize,
+        '#dc2626',
+        4.2,
+        { 'stroke-linecap': 'round' }
+      );
+      drawLine(
+        powerXGroup,
+        objectCenterX - powerXSize,
+        highestFootTopY + powerXSize,
+        objectCenterX + powerXSize,
+        highestFootTopY - powerXSize,
+        '#dc2626',
+        4.2,
+        { 'stroke-linecap': 'round' }
+      );
+
+      const gapDimX = objectRightX + 24;
+      const totalDimX = objectRightX + 84;
+
+      gaps.forEach((gapValue, i) => {
+        const lowerFoot = feet[i];
+        const upperFoot = feet[i + 1];
+        const yLowerTop = footSvgTop(lowerFoot);
+        const yUpperBottom = footSvgBottom(upperFoot);
+
+        drawVerticalDimension(svg, {
+          x: gapDimX,
+          y1: yUpperBottom,
+          y2: yLowerTop,
+          label: `${gapValue} mm`,
+          extensionFromX: objectRightX,
+          extensionToX: gapDimX
+        });
+      });
+
+      drawVerticalDimension(svg, {
+        x: totalDimX,
+        y1: highestFootTopY,
+        y2: lowestFootBottomY,
+        label: `${totalConstructionYmm} mm`,
+        extensionFromX: objectRightX,
+        extensionToX: totalDimX
+      });
+
+      const widthDimY = lowestFootBottomY + 28;
+      drawHorizontalDimension(svg, {
+        y: widthDimY,
+        x1: objectX,
+        x2: objectRightX,
+        label: `${widthMm} mm`,
+        extensionFromY: lowestFootBottomY,
+        extensionToY: widthDimY
+      });
+
+      const mountDimX = objectX - 58;
+      drawBrokenVerticalDimension(svg, {
+        x: mountDimX,
+        yTop: mountTopVisibleY,
+        yBottom: highestFootTopY,
+        label: montageLabel,
+        extensionFromX: objectX,
+        extensionToX: mountDimX
+      });
+
+      const footDimX = objectX - 24;
+      feet.forEach(foot => {
+        const yTop = footSvgTop(foot);
+        const yBottom = footSvgBottom(foot);
+        drawVerticalDimensionOutsideArrows(svg, {
+          x: footDimX,
+          yTop,
+          yBottom,
+          label: `${footThicknessMm} mm`,
+          extensionFromX: objectX,
+          extensionToX: footDimX
+        });
+      });
+
+      const overflowX = svgWidth + bodyPaddingX * 2 > pageBodyWidthPx;
+      const overflowY = svgHeight + bodyPaddingY * 2 > pageBodyHeightPx;
+      if (overflowX || overflowY) {
+        el.validationMessage.textContent = 'Hinweis: Die Zeichnung überschreitet bei dieser Platzierung bzw. Skalierung den A4-Bereich.';
+      }
+    }
+
+    function renderAll() {
+      const config = getCurrentConfig();
+      if (!config) return;
+      const validationError = validateConfig(config);
+      el.validationMessage.textContent = validationError;
+      renderSummary(config);
+      el.pageHeaderTitle.textContent = config.model || '';
+      el.pageHeaderNote.textContent = state.layout.headerNote || '';
+      renderDrawing(config, validationError);
+    }
+
+    function createNewConfig() {
+      const config = {
+        id: crypto.randomUUID(),
+        model: 'Neue Sauna',
+        gaps: '960,1000,960',
+        widthMm: 2000,
+        footThicknessMm: 80,
+        montageMm: 700
+      };
+      state.configs.push(config);
+      state.selectedId = config.id;
+      saveState();
+      updateFormFromState();
+      renderAll();
+    }
+
+    function duplicateCurrentConfig() {
+      const current = getCurrentConfig();
+      if (!current) return;
+      const duplicate = { ...structuredClone(current), id: crypto.randomUUID(), model: `${current.model} Kopie` };
+      state.configs.push(duplicate);
+      state.selectedId = duplicate.id;
+      saveState();
+      updateFormFromState();
+      renderAll();
+    }
+
+    function deleteCurrentConfig() {
+      if (state.configs.length <= 1) {
+        alert('Mindestens eine Konfiguration muss erhalten bleiben.');
+        return;
+      }
+      const current = getCurrentConfig();
+      if (!current) return;
+      const confirmed = confirm(`Konfiguration "${current.model}" wirklich löschen?`);
+      if (!confirmed) return;
+      state.configs = state.configs.filter(c => c.id !== current.id);
+      state.selectedId = state.configs[0].id;
+      saveState();
+      updateFormFromState();
+      renderAll();
+    }
+
+    function resetLayout() {
+      state.layout = structuredClone(defaultState.layout);
+      saveState();
+      updateFormFromState();
+      renderAll();
+    }
+
+    function bindEvents() {
+      el.configSelect.addEventListener('change', () => {
+        state.selectedId = el.configSelect.value;
+        saveState();
+        updateFormFromState();
+        renderAll();
+      });
+
+      [el.modelInput, el.gapsInput, el.widthInput, el.footThicknessInput, el.montageInput].forEach(node => {
+        node.addEventListener('input', updateCurrentConfigFromInputs);
+        node.addEventListener('change', updateCurrentConfigFromInputs);
+      });
+
+      [el.headerNoteInput, el.horizontalAnchor, el.verticalAnchor, el.horizontalOffset, el.verticalOffset, el.zoomInput, el.showGridInput, el.showDebugContainerInput].forEach(node => {
+        node.addEventListener('input', updateLayoutFromInputs);
+        node.addEventListener('change', updateLayoutFromInputs);
+      });
+
+      el.newConfigBtn.addEventListener('click', createNewConfig);
+      el.duplicateConfigBtn.addEventListener('click', duplicateCurrentConfig);
+      el.deleteConfigBtn.addEventListener('click', deleteCurrentConfig);
+      el.resetLayoutBtn.addEventListener('click', resetLayout);
+      el.printBtn.addEventListener('click', () => window.print());
+      window.addEventListener('resize', renderAll);
+    }
+
+    bindEvents();
+    updateFormFromState();
+    renderAll();
+  </script>
+</body>
+</html>
